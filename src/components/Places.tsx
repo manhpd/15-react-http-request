@@ -1,4 +1,4 @@
-export default function Places({ title, places, fallbackText, onSelectPlace }) {
+export default function Places({ title, places, fallbackText, onSelectPlace } : { title: string, places: any[], fallbackText: string, onSelectPlace: (place: any) => void }) {
   console.log(places);
   return (
     <section className="places-category">
