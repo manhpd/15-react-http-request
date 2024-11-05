@@ -1,10 +1,11 @@
-export default function Places({ title, places, fallbackText, onSelectPlace } : { title: string, places: any[], fallbackText: string, onSelectPlace: (place: any) => void }) {
-  console.log(places);
+export default function Places({ title, places, fallbackText, onSelectPlace, isLoading, loadingText } 
+  : { title: string, places: any[], fallbackText: string, onSelectPlace: (place: any) => void, isLoading: boolean, loadingText: string }) {
   return (
     <section className="places-category">
       <h2>{title}</h2>
-      {places.length === 0 && <p className="fallback-text">{fallbackText}</p>}
-      {places.length > 0 && (
+      {isLoading && <p className="loading-text">{loadingText}</p>}
+      {!isLoading && places.length === 0 && <p className="fallback-text">{fallbackText}</p>}
+      {!isLoading && places.length > 0 && (
         <ul className="places">
           {places.map((place) => (
             <li key={place.id} className="place-item">

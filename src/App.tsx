@@ -5,15 +5,19 @@ import Modal from './components/Modal.jsx';
 import DeleteConfirmation from './components/DeleteConfirmation.jsx';
 import logoImg from './assets/logo.png';
 import AvailablePlaces from './components/AvailablePlaces.jsx';
+import { updateUserPlaces } from './http.js';
+import ErrorPage from './components/ErrorPage.js';
 
 function App() {
-  const selectedPlace = useRef();
+  const selectedPlace = useRef<any>();
 
   const [userPlaces, setUserPlaces] = useState([]);
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
-  function handleStartRemovePlace(place) {
+  const [ errorUpdateUserPlaces, setErrorUpdateUserPlaces ] = useState<any>();
+
+  function handleStartRemovePlace(place: any) {
     setModalIsOpen(true);
     selectedPlace.current = place;
   }
@@ -22,28 +26,43 @@ function App() {
     setModalIsOpen(false);
   }
 
-  function handleSelectPlace(selectedPlace) {
-    setUserPlaces((prevPickedPlaces) => {
+  async function handleSelectPlace(selectedPlace: any) {
+    setUserPlaces((prevPickedPlaces: any) => {
       if (!prevPickedPlaces) {
         prevPickedPlaces = [];
       }
-      if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
+      if (prevPickedPlaces.some((place: any) => place.id === selectedPlace.id)) {
         return prevPickedPlaces;
       }
       return [selectedPlace, ...prevPickedPlaces];
     });
+
+    try {
+      await updateUserPlaces([...userPlaces, selectedPlace]);
+    } catch (error: any) {
+      setUserPlaces(userPlaces);
+      setErrorUpdateUserPlaces({message: error.message || 'An error occurred while updating the user places.'} as any);
+    }
   }
 
   const handleRemovePlace = useCallback(async function handleRemovePlace() {
-    setUserPlaces((prevPickedPlaces) =>
-      prevPickedPlaces.filter((place) => place.id !== selectedPlace.current.id)
+    setUserPlaces((prevPickedPlaces: any) =>
+      prevPickedPlaces.filter((place: any) => place.id !== selectedPlace?.current?.id || '')
     );
 
     setModalIsOpen(false);
   }, []);
 
+  const handleError = () => {
+    setErrorUpdateUserPlaces(null);
+  }
+
   return (
     <>
+    <Modal open={!!errorUpdateUserPlaces} onClose={handleError}>
+      { errorUpdateUserPlaces && <ErrorPage message={errorUpdateUserPlaces?.message} title="HTTP error" /> }
+        
+    </Modal>
       <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
@@ -63,6 +82,8 @@ function App() {
         <Places
           title="I'd like to visit ..."
           fallbackText="Select the places you would like to visit below."
+          isLoading={false}
+          loadingText="Loading places..."
           places={userPlaces}
           onSelectPlace={handleStartRemovePlace}
         />
